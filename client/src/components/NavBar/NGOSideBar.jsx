@@ -1,10 +1,15 @@
 import React from 'react';
-import { 
-    Activity, Package, Users, ListChecks, LogOut, ShieldAlert 
+import {
+    Activity, Package, Users, ListChecks, LogOut, ShieldAlert
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 function NGOSideBar() {
+    const handleLogout = () => {
+        sessionStorage.removeItem("authToken");
+        navigate("/login", { replace: true });
+    };
+
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -33,11 +38,10 @@ function NGOSideBar() {
                     <button
                         key={item.path}
                         onClick={() => navigate(item.path)}
-                        className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold transition-all ${
-                            location.pathname === item.path
+                        className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold transition-all ${location.pathname === item.path
                                 ? 'bg-orange-500 text-white shadow-xl shadow-orange-200'
                                 : 'text-slate-400 hover:bg-slate-50 hover:text-slate-800'
-                        }`}
+                            }`}
                     >
                         {item.icon} {item.label}
                     </button>
@@ -46,12 +50,13 @@ function NGOSideBar() {
 
             {/* Logout Section */}
             <div className="pt-8 border-t border-slate-100">
-                <button 
-                    onClick={() => navigate('/login')} 
+                <button
+                    onClick={handleLogout}
                     className="flex items-center gap-3 px-4 py-3 text-red-500 font-bold hover:bg-red-50 rounded-2xl w-full transition-all"
                 >
                     <LogOut size={20} /> Sign Out
                 </button>
+
             </div>
         </aside>
     );

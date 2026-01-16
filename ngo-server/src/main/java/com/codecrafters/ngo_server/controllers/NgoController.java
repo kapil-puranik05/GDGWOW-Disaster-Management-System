@@ -38,9 +38,4 @@ public class NgoController {
     public ResponseEntity<?> getNgoById(@PathVariable UUID id) {
         return new ResponseEntity<>(ngoService.getNgo(id), HttpStatus.OK);
     }
-
-    @GetMapping("/closest-ngos")
-    public ResponseEntity<?> getClosestNgos(@RequestBody ClosestNgoRequest ngoRequest) {
-        return new ResponseEntity<>(ngoService.getClosestNgos(ngoRequest), HttpStatus.OK);
-    }
 }

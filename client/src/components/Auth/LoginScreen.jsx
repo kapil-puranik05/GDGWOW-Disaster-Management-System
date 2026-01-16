@@ -25,35 +25,45 @@ function LoginScreen() {
         return Object.keys(tempErrors).length === 0;
     };
 
-    // Login logic with temporary redirection
     const handleLogin = async (e) => {
-    e.preventDefault(); // Prevents the page from refreshing
-    
-    if (validate()) { // Runs the email/password validation check
-        setIsLoading(true);
-        setErrors({}); 
+    e.preventDefault();
 
-        try {
-            // Simulate a short network delay for a premium feel
-            await new Promise(resolve => setTimeout(resolve, 1000));
+    if (!validate()) return;
 
-            // --- REDIRECTION LOGIC START ---
-            if (formData.email === "admin@ngo.org" && formData.password === "temp123") {
-                console.log("Access Granted: Entering Command Center");
-                navigate('/ngo-main'); // This sends you to the disaster dashboard
-            } else {
-                // If credentials don't match, show this professional error
-                setErrors({ auth: "Invalid credentials. Use admin@ngo.org / temp123" });
-            }
-            // --- REDIRECTION LOGIC END ---
+    setIsLoading(true);
+    setErrors({});
 
-        } catch (error) {
-            setErrors({ auth: "Server connection failed. Try again." });
-        } finally {
-            setIsLoading(false);
+    try {
+        const response = await fetch("http://localhost:8080/public/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                email: formData.email,
+                password: formData.password
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error("Invalid credentials");
         }
+
+        const data = await response.json();
+
+        // 1️⃣ Store token
+        sessionStorage.setItem("authToken", data.token);
+
+        // 2️⃣ Navigate
+        navigate("/ngo-main");
+
+    } catch (error) {
+        setErrors({ auth: error.message || "Login failed" });
+    } finally {
+        setIsLoading(false);
     }
 };
+
 
     return (
         <div className="min-h-[85vh] flex items-center justify-center bg-[#fffdf1] px-4 py-8">
