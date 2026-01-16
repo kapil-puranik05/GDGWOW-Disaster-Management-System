@@ -18,11 +18,6 @@ import java.util.UUID;
 public class NgoController {
     private final NgoService ngoService;
 
-    @PostMapping
-    public ResponseEntity<?> registerNgo(@Valid @RequestBody NgoRequest ngoRequest) {
-        return new ResponseEntity<>(ngoService.createNgo(ngoRequest), HttpStatus.CREATED);
-    }
-
     @PutMapping
     public ResponseEntity<?> updateNgo(@Valid @RequestBody NgoUpdateRequest ngoUpdateRequest) {
         return new ResponseEntity<>(ngoService.updateNgoData(ngoUpdateRequest), HttpStatus.OK);
