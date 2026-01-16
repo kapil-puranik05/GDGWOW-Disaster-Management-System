@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import India from './BodyImg/India.jpg';
+import India from './BodyImg/India.jpeg';
 
 function Body() {
     const navigate = useNavigate();

@@ -9,7 +9,7 @@ function Footer() {
                 <div className="flex-1">
                     <h2 className="text-xl font-bold text-orange-400 mb-4">About Us</h2>
                     <p className="text-sm text-gray-300">
-                        We aim to revolutionize rural healthcare by leveraging telemedicine to reach even the remotest villages. Empowering every citizen, every day.
+                        Leveraging AI to outrun disaster and build resilient communities for a safer tomorrow.
                     </p>
                 </div>
 
@@ -17,7 +17,6 @@ function Footer() {
                 <div className="flex-1">
                     <h2 className="text-xl font-bold text-orange-400 mb-4">Quick Links</h2>
                     <ul className="space-y-2 text-sm text-gray-300">
-                        <li><a href="/closest-ngo" className="hover:text-orange-400">SOS</a></li>
                         <li><a href="/awareness" className="hover:text-orange-400">Awareness</a></li>
                         <li><a href="/contact" className="hover:text-orange-400">Contact</a></li>
                         <li><a href="/privacy" className="hover:text-orange-400">Privacy Policy</a></li>
@@ -38,7 +37,7 @@ function Footer() {
 
             {/* Bottom Bar */}
             <div className="border-t border-gray-700 mt-8 pt-4 text-center text-sm text-gray-400">
-                © {new Date().getFullYear()} RuralCare — All rights reserved.
+             SahAIta - Rescuing People Digitally
             </div>
         </footer>
     );
