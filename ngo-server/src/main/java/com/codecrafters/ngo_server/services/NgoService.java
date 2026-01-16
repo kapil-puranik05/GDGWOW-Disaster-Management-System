@@ -1,13 +1,14 @@
 package com.codecrafters.ngo_server.services;
 
-import com.codecrafters.ngo_server.dtos.ClosestNgoRequest;
-import com.codecrafters.ngo_server.dtos.NgoRequest;
-import com.codecrafters.ngo_server.dtos.NgoUpdateRequest;
+import com.codecrafters.ngo_server.dtos.*;
+import com.codecrafters.ngo_server.exceptions.InvalidCredentialsException;
 import com.codecrafters.ngo_server.exceptions.NgoAlreadyExistsException;
 import com.codecrafters.ngo_server.exceptions.NgoNotFoundException;
 import com.codecrafters.ngo_server.models.Ngo;
 import com.codecrafters.ngo_server.repositories.NgoRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class NgoService {
     private final NgoRepository ngoRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final NgoDetailsService ngoDetailsService;
+    private final JwtService jwtService;
 
     //Need to figure out how we're supposed to validate latitude and longitude
     @Transactional
@@ -32,6 +36,7 @@ public class NgoService {
         ngo.setLatitude(ngoRequest.getLatitude());
         ngo.setContactNumber(ngoRequest.getContactNumber());
         ngo.setEmail(ngoRequest.getEmail());
+        ngo.setPassword(passwordEncoder.encode(ngoRequest.getPassword()));
         return ngoRepository.save(ngo);
     }
 
@@ -77,5 +82,16 @@ public class NgoService {
         double a = Math.pow(Math.sin(dLat / 2), 2) + Math.pow(Math.sin(dLon / 2), 2) * Math.cos(radLat1) * Math.cos(radLat2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c;
+    }
+
+    public AuthResponse login(LoginRequest loginRequest) {
+        UserDetails ngo = ngoDetailsService.loadUserByUsername(loginRequest.getEmail());
+        if(!passwordEncoder.matches(loginRequest.getPassword(), ngo.getPassword())) {
+            throw new InvalidCredentialsException("Invalid credentials");
+        }
+        String token = jwtService.generateToken(ngo.getUsername());
+        AuthResponse authResponse = new AuthResponse();
+        authResponse.setToken(token);
+        return authResponse;
     }
 }
