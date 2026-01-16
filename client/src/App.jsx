@@ -1,6 +1,11 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 
+// Route Guards
+import ProtectedRoute from "./ProtectedRoute";
+// (Optional – only if you created it)
+// import PublicRoute from "./PublicRoute";
+
 // Standard Layout Components
 import NavBar from "./components/NavBar/NavBar";
 import Footer from "./components/Footer/Footer";
@@ -24,51 +29,84 @@ import TeamTracking from "./components/NGOSideBar/TeamTracking";
 import SOPManuals from "./components/NGOSideBar/SOPManuals";
 
 /**
- * AppContent handles the conditional rendering of Sidebars and NavBars 
- * based on the current URL path.
+ * AppContent handles conditional rendering of Sidebar / Navbar / Footer
+ * based on current route.
  */
 function AppContent() {
   const location = useLocation();
 
-  // Define routes that belong to the NGO Command Center
+  // All NGO protected routes
   const ngoRoutes = ["/ngo-main", "/inventory", "/team-tracking", "/sop-manuals"];
   const isNGORoute = ngoRoutes.includes(location.pathname);
 
   return (
-    /* If we are on an NGO route, we use 'flex-row' to put the Sidebar next to the content.
-       Otherwise, we use 'flex-col' for the standard top-to-bottom website layout.
-    */
-    <div className={`flex min-h-screen bg-[#fffdf1] ${isNGORoute ? "flex-row" : "flex-col"}`}>
-      
-      {/* 1. SIDEBAR: Only shows when an NGO is logged in and on a dashboard page */}
+    <div
+      className={`flex min-h-screen bg-[#fffdf1] ${
+        isNGORoute ? "flex-row" : "flex-col"
+      }`}
+    >
+      {/* Sidebar – only for NGO protected routes */}
       {isNGORoute && <NGOSideBar />}
 
-      {/* 2. NAVBAR: Only shows on public-facing pages */}
+      {/* Navbar – only for public routes */}
       {!isNGORoute && <NavBar />}
 
-      {/* 3. MAIN CONTENT: Dynamically swaps based on Route */}
+      {/* Main Content */}
       <main className="flex-grow">
         <Routes>
-          {/* Public Routes */}
+          {/* ================= PUBLIC ROUTES ================= */}
           <Route path="/" element={<Body />} />
+          <Route path="/awareness" element={<AwarenessPage />} />
+          <Route path="/closest-ngo" element={<CloseNGO />} />
+
           <Route path="/login" element={<LoginScreen />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/register-ngo" element={<RegisterNGO />} />
           <Route path="/register-user" element={<RegisterUser />} />
-          <Route path="/awareness" element={<AwarenessPage />} />
-          <Route path="/closest-ngo" element={<CloseNGO />} />
 
-          {/* NGO Protected Routes */}
-          <Route path="/ngo-main" element={<NGOMainPage />} />
-          <Route path="/inventory" element={<InventoryPage />} />
-          <Route path="/team-tracking" element={<TeamTracking />} />
-          <Route path="/sop-manuals" element={<SOPManuals />} />
-          {/* Fallback (Optional): Redirect to Home or 404 */}
+          {/* ================= PROTECTED NGO ROUTES ================= */}
+          <Route
+            path="/ngo-main"
+            element={
+              <ProtectedRoute>
+                <NGOMainPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/inventory"
+            element={
+              <ProtectedRoute>
+                <InventoryPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/team-tracking"
+            element={
+              <ProtectedRoute>
+                <TeamTracking />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/sop-manuals"
+            element={
+              <ProtectedRoute>
+                <SOPManuals />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Fallback */}
           <Route path="*" element={<Body />} />
         </Routes>
       </main>
 
-      {/* 4. FOOTER: Only shows on public-facing pages */}
+      {/* Footer – only for public routes */}
       {!isNGORoute && <Footer />}
     </div>
   );

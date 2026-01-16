@@ -1,8 +1,8 @@
 package com.codecrafters.ngo_server.controllers;
 
+import com.codecrafters.ngo_server.dtos.ClosestNgoRequest;
 import com.codecrafters.ngo_server.dtos.LoginRequest;
 import com.codecrafters.ngo_server.dtos.NgoRequest;
-import com.codecrafters.ngo_server.repositories.NgoRepository;
 import com.codecrafters.ngo_server.services.NgoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,5 +29,10 @@ public class PublicController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         return new ResponseEntity<>(ngoService.login(loginRequest), HttpStatus.OK);
+    }
+
+    @GetMapping("/closest-ngos")
+    public ResponseEntity<?> getClosestNgos(@RequestBody ClosestNgoRequest ngoRequest) {
+        return new ResponseEntity<>(ngoService.getClosestNgos(ngoRequest), HttpStatus.OK);
     }
 }
