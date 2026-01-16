@@ -15,18 +15,22 @@ import NGOSideBar from "./components/NavBar/NGOSideBar";
 
 // Page Components
 import Body from "./components/Body/Body";
-import AwarenessPage from "./components/Awareness/AwarenessPage";
+import AwarenessPage from "./components/Awareness/AwarenessSection";
 import CloseNGO from "./components/Closest NGO/CloseNGO";
 import LoginScreen from "./components/Auth/LoginScreen";
 import ForgotPassword from "./components/Auth/ForgotPassword";
 import RegisterNGO from "./components/Auth/RegisterNGO";
 import RegisterUser from "./components/Auth/RegisterUser";
+import AboutUs from "./components/About/About";
+import OurWork from "./components/OurWork/OurWork";
 
 // NGO Specific Pages
 import NGOMainPage from "./components/MainPage/NGOMainPage";
 import InventoryPage from "./components/NGOSideBar/InventoryPage";
 import TeamTracking from "./components/NGOSideBar/TeamTracking";
 import SOPManuals from "./components/NGOSideBar/SOPManuals";
+import AwarenessSection from "./components/Awareness/AwarenessSection";
+import InspirationPage from "./components/Inspiration/InspirationPage";
 
 /**
  * AppContent handles conditional rendering of Sidebar / Navbar / Footer
@@ -56,7 +60,10 @@ function AppContent() {
         <Routes>
           {/* ================= PUBLIC ROUTES ================= */}
           <Route path="/" element={<Body />} />
-          <Route path="/awareness" element={<AwarenessPage />} />
+          <Route path="/awareness" element={<AwarenessSection />} />
+          <Route path="/about" element={<AboutUs />} />
+          <Route path="/work" element={<OurWork />} />
+          <Route path="/inspiration" element={<InspirationPage />} />
           <Route path="/closest-ngo" element={<CloseNGO />} />
 
           <Route path="/login" element={<LoginScreen />} />
