@@ -18,7 +18,6 @@ import {
 
 const { width } = Dimensions.get('window');
 
-// ======== TRANSLATED CALAMITIES ========
 const CALAMITIES_TRANSLATED = {
   en: {
     Flood: "Flood",
@@ -147,44 +146,56 @@ export default function SOSScreen({ navigation }) {
     if (step === 'CONFIRMING') fetchCurrentLocation();
   }, [step]);
 
-  // ===== POST CALL =====
+  const sendEmergencyPayload = async (backendPayload) => {
+    const res = await fetch("http://10.0.2.2:8080", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(backendPayload)
+    });
 
-const sendEmergencyPayload = async (payload) => {
-  const res = await fetch("http://10.0.2.2:8080", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
-
-  console.log("[STATUS]", res.status);
-
-  if (!res.ok) throw new Error("Network failure");
-
-  return await res.json(); // <-- this contains NGO list
-};
+    if (!res.ok) throw new Error("Network failure");
+    return await res.json();
+  };
 
 const triggerSOSAlert = async () => {
+  if (!selectedCalamity) {
+    Alert.alert("Missing Calamity", "Please select a calamity type.");
+    return;
+  }
+  if (!location.lat || !location.lon) {
+    Alert.alert("GPS Not Ready", "Waiting for GPS lock...");
+    return;
+  }
+
   setLoading(true);
   Vibration.vibrate([100, 500, 100]);
 
-  const payload = {
+  const payloadToBackend = {
     calamity: selectedCalamity,
-    latitude: location.lat,
-    longitude: location.lon,
+    latitude: parseFloat(location.lat),
+    longitude: parseFloat(location.lon)
   };
 
+  console.log("📤 SENDING EMERGENCY:", payloadToBackend);
+
   try {
-    const result = await sendEmergencyPayload(payload);
+    const result = await sendEmergencyPayload(payloadToBackend);
 
     const [closestList, emergencyStatus] = result;
 
-    setLoading(false);
-    proceedToBot({
-      ...payload,
+    const payloadToBot = {
+      ...payloadToBackend,
       ngos: closestList,
       emergencyStatus,
-      isEmergency: true
-    });
+      isEmergency: true,
+      isGuest,
+      language,
+      deviceLocation: location,
+      timestamp: Date.now()
+    };
+
+    setLoading(false);
+    proceedToBot(payloadToBot);
 
   } catch (err) {
     setLoading(false);
@@ -200,13 +211,14 @@ const triggerSOSAlert = async () => {
     });
   };
 
-  // LANGUAGE POPUP
   if (!language) {
     return (
       <Modal visible transparent animationType="fade">
         <View style={styles.popupOverlay}>
           <View style={[styles.popupContent, { padding: 20 }]}>
-            <Text style={styles.popupTitle}>Select Language / भाषा चुनें / भाषा निवडा</Text>
+            <Text style={styles.popupTitle}>
+              Select Language / भाषा चुनें / भाषा निवडा
+            </Text>
             <TouchableOpacity style={styles.langBtn} onPress={() => setLanguage('en')}>
               <Text style={styles.langText}>English</Text>
             </TouchableOpacity>
@@ -225,13 +237,14 @@ const triggerSOSAlert = async () => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
-
       <SafeAreaView style={{ flex: 1 }}>
 
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.brand}>Sah<Text style={{ color: '#FB923C' }}>AI</Text>ta</Text>
+            <Text style={styles.brand}>
+              Sah<Text style={{ color: '#FB923C' }}>AI</Text>ta
+            </Text>
             <Text style={styles.headerSub}>
               {isGuest ? STRINGS[language].guestMode : STRINGS[language].normalMode}
             </Text>
@@ -246,6 +259,7 @@ const triggerSOSAlert = async () => {
         </View>
 
         <ScrollView contentContainerStyle={styles.mainScroll} showsVerticalScrollIndicator={false}>
+          
           {step === 'IDLE' ? (
             <View style={styles.flowCard}>
 
@@ -260,14 +274,16 @@ const triggerSOSAlert = async () => {
                 <View style={styles.selectorLeft}>
                   <Zap size={18} color="#FB923C" />
                   <Text style={styles.selectorText}>
-                    {selectedCalamity ? CALAMITIES_TRANSLATED[language][selectedCalamity] : STRINGS[language].selectCalamity}
+                    {selectedCalamity
+                      ? CALAMITIES_TRANSLATED[language][selectedCalamity]
+                      : STRINGS[language].selectCalamity}
                   </Text>
                 </View>
                 <ChevronDown size={20} color="#94A3B8" />
               </TouchableOpacity>
 
-              <TouchableOpacity 
-                style={[styles.bigButton, !selectedCalamity && styles.disabled]} 
+              <TouchableOpacity
+                style={[styles.bigButton, !selectedCalamity && styles.disabled]}
                 disabled={!selectedCalamity}
                 onPress={() => setStep('CONFIRMING')}
               >
@@ -279,17 +295,23 @@ const triggerSOSAlert = async () => {
 
             </View>
           ) : (
+
             <View style={styles.flowCard}>
+
               <View style={styles.locationContainer}>
                 <View style={styles.locationIconBg}>
-                  {locLoading ? <ActivityIndicator color="#FB923C" /> : <MapPin size={36} color="#FB923C" />}
+                  {locLoading
+                    ? <ActivityIndicator color="#FB923C" />
+                    : <MapPin size={36} color="#FB923C" />}
                 </View>
               </View>
 
               <Text style={styles.title}>{STRINGS[language].verifyLocation}</Text>
 
               <Text style={styles.locationDetail}>
-                {locLoading ? STRINGS[language].detectingLocation : `${location.lat?.toFixed(4)}, ${location.lon?.toFixed(4)}`}
+                {locLoading
+                  ? STRINGS[language].detectingLocation
+                  : `${location.lat?.toFixed(4)}, ${location.lon?.toFixed(4)}`}
               </Text>
 
               <View style={styles.infoAlert}>
@@ -299,9 +321,9 @@ const triggerSOSAlert = async () => {
                 </Text>
               </View>
 
-              <TouchableOpacity 
-                style={[styles.confirmBtn, locLoading && { opacity: 0.6 }]}
-                disabled={loading || locLoading}
+              <TouchableOpacity
+                style={[styles.confirmBtn, (locLoading || !location.lat || !location.lon) && { opacity: 0.6 }]}
+                disabled={loading || locLoading || !location.lat || !location.lon}
                 onPress={triggerSOSAlert}
               >
                 {loading ? (
@@ -317,7 +339,7 @@ const triggerSOSAlert = async () => {
               <TouchableOpacity onPress={() => setStep('IDLE')} style={styles.cancelBtn} disabled={loading}>
                 <Text style={styles.cancelText}>{STRINGS[language].returnSelection}</Text>
               </TouchableOpacity>
-
+              
             </View>
           )}
 
@@ -325,7 +347,7 @@ const triggerSOSAlert = async () => {
         </ScrollView>
 
         {!isGuest && (
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.fab, { bottom: insets.bottom + 20 }]}
             onPress={() => navigation.navigate("Bot", { calamity: "General", isEmergency: false })}
           >
@@ -338,6 +360,7 @@ const triggerSOSAlert = async () => {
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <View style={styles.modalHandle} />
+
               <View style={styles.modalHeaderRow}>
                 <Text style={styles.modalHeader}>{STRINGS[language].selectCalamity}</Text>
                 <TouchableOpacity onPress={() => setShowPicker(false)} style={styles.closeBtn}>
@@ -353,21 +376,29 @@ const triggerSOSAlert = async () => {
                     <TouchableOpacity
                       key={c.key}
                       style={[styles.modalItem, selectedCalamity === c.key && styles.activeModalItem]}
-                      onPress={() => { setSelectedCalamity(c.key); setShowPicker(false); }}
+                      onPress={() => {
+                        setSelectedCalamity(c.key);
+                        setShowPicker(false);
+                      }}
                     >
                       <View style={styles.modalItemLeft}>
                         <View style={[styles.modalIconBgItem, { backgroundColor: '#FFF7ED' }]}>
                           <Icon size={20} color="#FB923C" />
                         </View>
-                        <Text style={[styles.modalItemText, selectedCalamity === c.key && styles.activeModalItemText]}>
+                        <Text style={[
+                          styles.modalItemText,
+                          selectedCalamity === c.key && styles.activeModalItemText
+                        ]}>
                           {translated}
                         </Text>
                       </View>
+
                       {selectedCalamity === c.key && <View style={styles.activeDot} />}
                     </TouchableOpacity>
                   );
                 })}
               </ScrollView>
+
             </View>
           </View>
         </Modal>
@@ -379,11 +410,22 @@ const triggerSOSAlert = async () => {
               <View style={styles.successIconCircle}>
                 <CheckCircle2 size={50} color="#10B981" />
               </View>
+
               <Text style={styles.popupTitle}>{STRINGS[language].alertDispatched}</Text>
               <Text style={styles.popupSubtitle}>{STRINGS[language].connecting}</Text>
-              <TouchableOpacity style={styles.popupBtn} onPress={() => proceedToBot({ calamity: selectedCalamity, location, isGuest, isEmergency: true })}>
+
+              <TouchableOpacity
+                style={styles.popupBtn}
+                onPress={() => proceedToBot({
+                  calamity: selectedCalamity,
+                  location,
+                  isGuest,
+                  isEmergency: true
+                })}
+              >
                 <Text style={styles.popupBtnText}>{STRINGS[language].startConversation}</Text>
               </TouchableOpacity>
+
             </View>
           </View>
         </Modal>
@@ -393,8 +435,8 @@ const triggerSOSAlert = async () => {
   );
 }
 
-
 // ================== STYLES ==================
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FAFAFA' },
   header: { padding: 25, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -449,4 +491,3 @@ const styles = StyleSheet.create({
   langBtn: { width: '100%', paddingVertical: 16, borderRadius: 16, backgroundColor: '#FFF7ED', borderWidth: 1, borderColor: '#FFEDD5', marginTop: 12, alignItems: 'center' },
   langText: { fontWeight: '900', fontSize: 17, color: '#FB923C' }
 });
-
