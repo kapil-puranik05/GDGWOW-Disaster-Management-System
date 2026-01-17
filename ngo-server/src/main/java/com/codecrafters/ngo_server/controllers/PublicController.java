@@ -38,7 +38,7 @@ public class PublicController {
     }
 
     @PostMapping("/emergency")
-    public ResponseEntity<?> acceptEmergencyRequest(EmergencyRequest emergencyRequest) {
+    public ResponseEntity<?> acceptEmergencyRequest(@RequestBody EmergencyRequest emergencyRequest) {
         ngoService.sendMailToClosestNgo(emergencyRequest);
         return new ResponseEntity<>("Mail sent to the closest NGO", HttpStatus.OK);
     }

@@ -77,7 +77,21 @@ public class NgoService {
         List<Ngo> ngos = ngoRepository.findAll();
         ngos.sort(Comparator.comparingDouble(ngo -> haversineDistance(emergencyRequest.getLongitude(), emergencyRequest.getLatitude(), ngo.getLongitude(), ngo.getLatitude())));
         if(!ngos.isEmpty()) {
-            String message = "Hello, we need help. There is a " + emergencyRequest.getCalamity() + " here.\nOur location: " + emergencyRequest.getLatitude() + "," + emergencyRequest.getLongitude();
+            String message = String.format("""
+        🚨 Emergency Alert 🚨
+
+        Hello, we need help.
+        Calamity: %s
+
+        📍 Location:
+        Latitude: %.6f
+        Longitude: %.6f
+        """,
+                    emergencyRequest.getCalamity(),
+                    emergencyRequest.getLatitude(),
+                    emergencyRequest.getLongitude()
+            );
+
             mailSenderService.sendSimpleMail(ngos.get(0).getEmail(), emergencyRequest.getCalamity() + "Alert", message);
         }
     }
