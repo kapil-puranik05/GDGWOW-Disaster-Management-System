@@ -1,5 +1,3 @@
-// ================== SOSScreen.js ==================
-
 import React, { useState, useEffect } from 'react';
 import { 
   View, Text, StyleSheet, TouchableOpacity, 
@@ -13,7 +11,7 @@ import {
   ShieldAlert, MapPin, ChevronDown, 
   X, Info, MessageSquareText, Zap, Navigation,
   Flame, Waves, Mountain, Stethoscope, Car, AlertTriangle,
-  CheckCircle2
+  CheckCircle2, ArrowLeft 
 } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
@@ -157,52 +155,50 @@ export default function SOSScreen({ navigation }) {
     return await res.json();
   };
 
-const triggerSOSAlert = async () => {
-  if (!selectedCalamity) {
-    Alert.alert("Missing Calamity", "Please select a calamity type.");
-    return;
-  }
-  if (!location.lat || !location.lon) {
-    Alert.alert("GPS Not Ready", "Waiting for GPS lock...");
-    return;
-  }
+  const triggerSOSAlert = async () => {
+    if (!selectedCalamity) {
+      Alert.alert("Missing Calamity", "Please select a calamity type.");
+      return;
+    }
+    if (!location.lat || !location.lon) {
+      Alert.alert("GPS Not Ready", "Waiting for GPS lock...");
+      return;
+    }
 
-  setLoading(true);
-  Vibration.vibrate([100, 500, 100]);
+    setLoading(true);
+    Vibration.vibrate([100, 500, 100]);
 
-  const payloadToBackend = {
-    calamity: selectedCalamity,
-    latitude: parseFloat(location.lat),
-    longitude: parseFloat(location.lon)
-  };
-
-  console.log("📤 SENDING EMERGENCY:", payloadToBackend);
-
-  try {
-    const result = await sendEmergencyPayload(payloadToBackend);
-
-    const [closestList, emergencyStatus] = result;
-
-    const payloadToBot = {
-      ...payloadToBackend,
-      ngos: closestList,
-      emergencyStatus,
-      isEmergency: true,
-      isGuest,
-      language,
-      deviceLocation: location,
-      timestamp: Date.now()
+    const payloadToBackend = {
+      calamity: selectedCalamity,
+      latitude: parseFloat(location.lat),
+      longitude: parseFloat(location.lon)
     };
 
-    setLoading(false);
-    proceedToBot(payloadToBot);
+    console.log("📤 SENDING EMERGENCY:", payloadToBackend);
 
-  } catch (err) {
-    setLoading(false);
-    Alert.alert("Network Error", "Unable to dispatch alert");
-  }
-};
+    try {
+      const result = await sendEmergencyPayload(payloadToBackend);
+      const [closestList, emergencyStatus] = result;
 
+      const payloadToBot = {
+        ...payloadToBackend,
+        ngos: closestList,
+        emergencyStatus,
+        isEmergency: true,
+        isGuest,
+        language,
+        deviceLocation: location,
+        timestamp: Date.now()
+      };
+
+      setLoading(false);
+      proceedToBot(payloadToBot);
+
+    } catch (err) {
+      setLoading(false);
+      Alert.alert("Network Error", "Unable to dispatch alert");
+    }
+  };
 
   const proceedToBot = (payload) => {
     navigation.navigate("Bot", {
@@ -239,15 +235,17 @@ const triggerSOSAlert = async () => {
       <StatusBar barStyle="dark-content" />
       <SafeAreaView style={{ flex: 1 }}>
 
-        {/* Header */}
+        {/* Updated Header with Back Button */}
         <View style={styles.header}>
-          <View>
-            <Text style={styles.brand}>
-              Sah<Text style={{ color: '#FB923C' }}>AI</Text>ta
-            </Text>
-            <Text style={styles.headerSub}>
-              {isGuest ? STRINGS[language].guestMode : STRINGS[language].normalMode}
-            </Text>
+          <View style={styles.headerLeft}>
+            <View>
+              <Text style={styles.brand}>
+                Sah<Text style={{ color: '#FB923C' }}>AI</Text>ta
+              </Text>
+              <Text style={styles.headerSub}>
+                {isGuest ? STRINGS[language].guestMode : STRINGS[language].normalMode}
+              </Text>
+            </View>
           </View>
 
           <View style={styles.liveTag}>
@@ -262,11 +260,9 @@ const triggerSOSAlert = async () => {
           
           {step === 'IDLE' ? (
             <View style={styles.flowCard}>
-
               <View style={styles.iconCircle}>
                 <ShieldAlert size={38} color="#FB923C" />
               </View>
-
               <Text style={styles.title}>{STRINGS[language].emergencyRequest}</Text>
               <Text style={styles.subtitle}>{STRINGS[language].subtitle}</Text>
 
@@ -292,12 +288,9 @@ const triggerSOSAlert = async () => {
                 </View>
                 <Text style={styles.buttonLabel}>{STRINGS[language].triggerSOS}</Text>
               </TouchableOpacity>
-
             </View>
           ) : (
-
             <View style={styles.flowCard}>
-
               <View style={styles.locationContainer}>
                 <View style={styles.locationIconBg}>
                   {locLoading
@@ -305,15 +298,12 @@ const triggerSOSAlert = async () => {
                     : <MapPin size={36} color="#FB923C" />}
                 </View>
               </View>
-
               <Text style={styles.title}>{STRINGS[language].verifyLocation}</Text>
-
               <Text style={styles.locationDetail}>
                 {locLoading
                   ? STRINGS[language].detectingLocation
                   : `${location.lat?.toFixed(4)}, ${location.lon?.toFixed(4)}`}
               </Text>
-
               <View style={styles.infoAlert}>
                 <Info size={18} color="#FB923C" />
                 <Text style={styles.infoText}>
@@ -335,11 +325,9 @@ const triggerSOSAlert = async () => {
                   </View>
                 )}
               </TouchableOpacity>
-
               <TouchableOpacity onPress={() => setStep('IDLE')} style={styles.cancelBtn} disabled={loading}>
                 <Text style={styles.cancelText}>{STRINGS[language].returnSelection}</Text>
               </TouchableOpacity>
-              
             </View>
           )}
 
@@ -360,45 +348,34 @@ const triggerSOSAlert = async () => {
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <View style={styles.modalHandle} />
-
               <View style={styles.modalHeaderRow}>
                 <Text style={styles.modalHeader}>{STRINGS[language].selectCalamity}</Text>
                 <TouchableOpacity onPress={() => setShowPicker(false)} style={styles.closeBtn}>
                   <X size={20} color="#FB923C"/>
                 </TouchableOpacity>
               </View>
-
               <ScrollView showsVerticalScrollIndicator={false}>
-                {CALAMITIES.map(c => {
-                  const Icon = c.icon;
-                  const translated = CALAMITIES_TRANSLATED[language][c.key];
-                  return (
-                    <TouchableOpacity
-                      key={c.key}
-                      style={[styles.modalItem, selectedCalamity === c.key && styles.activeModalItem]}
-                      onPress={() => {
-                        setSelectedCalamity(c.key);
-                        setShowPicker(false);
-                      }}
-                    >
-                      <View style={styles.modalItemLeft}>
-                        <View style={[styles.modalIconBgItem, { backgroundColor: '#FFF7ED' }]}>
-                          <Icon size={20} color="#FB923C" />
-                        </View>
-                        <Text style={[
-                          styles.modalItemText,
-                          selectedCalamity === c.key && styles.activeModalItemText
-                        ]}>
-                          {translated}
-                        </Text>
+                {CALAMITIES.map(c => (
+                  <TouchableOpacity
+                    key={c.key}
+                    style={[styles.modalItem, selectedCalamity === c.key && styles.activeModalItem]}
+                    onPress={() => {
+                      setSelectedCalamity(c.key);
+                      setShowPicker(false);
+                    }}
+                  >
+                    <View style={styles.modalItemLeft}>
+                      <View style={[styles.modalIconBgItem, { backgroundColor: '#FFF7ED' }]}>
+                        <c.icon size={20} color="#FB923C" />
                       </View>
-
-                      {selectedCalamity === c.key && <View style={styles.activeDot} />}
-                    </TouchableOpacity>
-                  );
-                })}
+                      <Text style={[styles.modalItemText, selectedCalamity === c.key && styles.activeModalItemText]}>
+                        {CALAMITIES_TRANSLATED[language][c.key]}
+                      </Text>
+                    </View>
+                    {selectedCalamity === c.key && <View style={styles.activeDot} />}
+                  </TouchableOpacity>
+                ))}
               </ScrollView>
-
             </View>
           </View>
         </Modal>
@@ -410,10 +387,8 @@ const triggerSOSAlert = async () => {
               <View style={styles.successIconCircle}>
                 <CheckCircle2 size={50} color="#10B981" />
               </View>
-
               <Text style={styles.popupTitle}>{STRINGS[language].alertDispatched}</Text>
               <Text style={styles.popupSubtitle}>{STRINGS[language].connecting}</Text>
-
               <TouchableOpacity
                 style={styles.popupBtn}
                 onPress={() => proceedToBot({
@@ -425,7 +400,6 @@ const triggerSOSAlert = async () => {
               >
                 <Text style={styles.popupBtnText}>{STRINGS[language].startConversation}</Text>
               </TouchableOpacity>
-
             </View>
           </View>
         </Modal>
@@ -435,16 +409,16 @@ const triggerSOSAlert = async () => {
   );
 }
 
-// ================== STYLES ==================
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FAFAFA' },
-  header: { padding: 25, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  brand: { fontSize: 32, fontWeight: '900', color: '#0F172A' },
-  headerSub: { fontSize: 13, color: '#94A3B8', fontWeight: '800' },
-  liveTag: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', paddingVertical: 8, paddingHorizontal: 16, borderRadius: 25 },
-  pulse: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#22C55E', marginRight: 8 },
-  liveText: { fontSize: 11, fontWeight: '900', color: '#15803D' },
+  header: { paddingHorizontal: 20, paddingVertical: 15, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  headerLeft: { flexDirection: 'row', alignItems: 'center' },
+  backIconBtn: { marginRight: 15, padding: 8, backgroundColor: '#F1F5F9', borderRadius: 12 },
+  brand: { fontSize: 28, fontWeight: '900', color: '#0F172A' },
+  headerSub: { fontSize: 11, color: '#94A3B8', fontWeight: '800' },
+  liveTag: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 20, elevation: 2 },
+  pulse: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#22C55E', marginRight: 6 },
+  liveText: { fontSize: 10, fontWeight: '900', color: '#15803D' },
   mainScroll: { paddingHorizontal: 20, paddingTop: 20 },
   flowCard: { backgroundColor: '#FFFFFF', padding: 30, borderRadius: 45, alignItems: 'center', elevation: 10, borderWidth: 1, borderColor: '#E2E8F0' },
   iconCircle: { width: 75, height: 75, borderRadius: 38, backgroundColor: '#FFF7ED', justifyContent: 'center', alignItems: 'center', marginBottom: 20, borderWidth: 1, borderColor: '#FFEDD5' },
@@ -452,7 +426,7 @@ const styles = StyleSheet.create({
   subtitle: { textAlign: 'center', color: '#64748B', marginTop: 12, marginBottom: 35, lineHeight: 22, fontWeight: '500' },
   selector: { width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#F8FAFC', padding: 20, borderRadius: 24, marginBottom: 25, borderWidth: 1.5, borderColor: '#E2E8F0' },
   selectorLeft: { flexDirection: 'row', alignItems: 'center' },
-  selectorText: { fontWeight: '800', color: '#0F172A', fontSize: 15 },
+  selectorText: { fontWeight: '800', color: '#0F172A', fontSize: 15, marginLeft: 10 },
   bigButton: { width: '100%', height: 180, backgroundColor: '#FF2D2D', borderRadius: 40, justifyContent: 'center', alignItems: 'center' },
   disabled: { backgroundColor: '#FD8D8D' },
   innerCircle: { width: 85, height: 85, borderRadius: 45, backgroundColor: 'rgba(255,255,255,0.15)', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: 'rgba(255,255,255,0.3)' },
@@ -461,13 +435,13 @@ const styles = StyleSheet.create({
   locationIconBg: { backgroundColor: '#FFF7ED', padding: 25, borderRadius: 35, borderWidth: 1, borderColor: '#FFEDD5' },
   locationDetail: { fontWeight: '800', color: '#94A3B8', marginTop: 12, fontSize: 16 },
   infoAlert: { flexDirection: 'row', alignItems: 'center', marginTop: 30, padding: 18, backgroundColor: '#FFF7ED', borderRadius: 25, borderWidth: 1, borderColor: '#FFEDD5' },
-  infoText: { color: '#9A3412', fontSize: 14, fontWeight: '700' },
+  infoText: { color: '#9A3412', fontSize: 14, fontWeight: '700', flex: 1, marginLeft: 10 },
   confirmBtn: { width: '100%', backgroundColor: '#0F172A', paddingVertical: 22, borderRadius: 25, marginTop: 35, alignItems: 'center' },
   row: { flexDirection: 'row', alignItems: 'center' },
   confirmBtnText: { color: '#fff', fontWeight: '900', fontSize: 18 },
   cancelBtn: { marginTop: 25, padding: 10 },
   cancelText: { color: '#94A3B8', fontWeight: '800' },
-  fab: { position: 'absolute', right: 20, width: 68, height: 68, borderRadius: 34, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' },
+  fab: { position: 'absolute', right: 20, width: 68, height: 68, borderRadius: 34, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center', elevation: 5 },
   popupOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' },
   popupContent: { width: width * 0.85, backgroundColor: '#fff', borderRadius: 40, padding: 30, alignItems: 'center' },
   successIconCircle: { width: 90, height: 90, borderRadius: 45, backgroundColor: '#DCFCE7', justifyContent: 'center', alignItems: 'center', marginBottom: 20 },
@@ -484,7 +458,7 @@ const styles = StyleSheet.create({
   modalItem: { paddingVertical: 18, paddingHorizontal: 20, borderRadius: 22, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   modalItemLeft: { flexDirection: 'row', alignItems: 'center' },
   modalIconBgItem: { width: 44, height: 44, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
-  modalItemText: { fontSize: 18, fontWeight: '700', color: '#475569' },
+  modalItemText: { fontSize: 18, fontWeight: '700', color: '#475569', marginLeft: 15 },
   activeModalItem: { backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0' },
   activeModalItemText: { color: '#0F172A' },
   activeDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#FB923C' },
