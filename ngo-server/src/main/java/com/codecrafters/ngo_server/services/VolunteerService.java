@@ -43,10 +43,10 @@ public class VolunteerService {
         return volunteerRepository.getVolunteersByNgoId(ngoId);
     }
 
-    public void deleteVolunteer(UUID id) {
-        if(!volunteerRepository.existsById(id)) {
+    public void deleteVolunteer(UUID ngoId) {
+        if(!volunteerRepository.existsById(ngoId)) {
             throw new VolunteerNotFoundException("Volunteer with provided id does not exist");
         }
-        volunteerRepository.deleteById(id);
+        volunteerRepository.deleteById(ngoId);
     }
 }

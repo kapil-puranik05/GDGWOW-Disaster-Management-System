@@ -53,7 +53,7 @@ function LoginScreen() {
 
         // 1️⃣ Store token
         sessionStorage.setItem("authToken", data.token);
-
+        sessionStorage.setItem("ngoId", data.ngoId)
         // 2️⃣ Navigate
         navigate("/ngo-main");
 

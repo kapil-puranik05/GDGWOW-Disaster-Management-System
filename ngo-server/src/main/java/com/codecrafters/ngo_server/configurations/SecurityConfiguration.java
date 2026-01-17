@@ -24,7 +24,7 @@ import java.util.List;
 public class SecurityConfiguration {
     private final JwtFilter jwtFilter;
 
-    @Value("${FRONTEND_URL}")
+    @Value("${frontend.url}")
     public String allowedUrl;
 
     @Bean

@@ -23,6 +23,7 @@ public class NgoService {
     private final PasswordEncoder passwordEncoder;
     private final NgoDetailsService ngoDetailsService;
     private final JwtService jwtService;
+    private final MailSenderServiceImpl mailSenderService;;
 
     //Need to figure out how we're supposed to validate latitude and longitude
     @Transactional
@@ -72,6 +73,15 @@ public class NgoService {
         return ngos.size() > ngoRequest.getN() ? ngos.stream().limit(ngoRequest.getN()).toList() : ngos;
     }
 
+    public void sendMailToClosestNgo(EmergencyRequest emergencyRequest) {
+        List<Ngo> ngos = ngoRepository.findAll();
+        ngos.sort(Comparator.comparingDouble(ngo -> haversineDistance(emergencyRequest.getLongitude(), emergencyRequest.getLatitude(), ngo.getLongitude(), ngo.getLatitude())));
+        if(!ngos.isEmpty()) {
+            String message = "Hello, we need help. There is a " + emergencyRequest.getCalamity() + " here.\nOur location: " + emergencyRequest.getLatitude() + "," + emergencyRequest.getLongitude();
+            mailSenderService.sendSimpleMail(ngos.get(0).getEmail(), emergencyRequest.getCalamity() + "Alert", message);
+        }
+    }
+
     public double haversineDistance(double lon1, double lat1, double lon2, double lat2) {
         double toRad = Math.PI / 180;
         double R = 6371;
@@ -92,6 +102,7 @@ public class NgoService {
         String token = jwtService.generateToken(ngo.getUsername());
         AuthResponse authResponse = new AuthResponse();
         authResponse.setToken(token);
+        authResponse.setNgoId(ngoRepository.findByEmail(loginRequest.getEmail()).get().getId());
         return authResponse;
     }
 }

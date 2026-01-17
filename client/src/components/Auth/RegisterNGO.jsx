@@ -93,7 +93,6 @@ function RegisterNGO() {
                 const err = await response.json();
                 throw new Error(err.message || "Registration failed");
             }
-
             setIsSubmitted(true);
         } catch (err) {
             setErrors({ submit: err.message });

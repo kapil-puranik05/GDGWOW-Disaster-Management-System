@@ -1,6 +1,7 @@
 package com.codecrafters.ngo_server.controllers;
 
 import com.codecrafters.ngo_server.dtos.ClosestNgoRequest;
+import com.codecrafters.ngo_server.dtos.EmergencyRequest;
 import com.codecrafters.ngo_server.dtos.LoginRequest;
 import com.codecrafters.ngo_server.dtos.NgoRequest;
 import com.codecrafters.ngo_server.services.NgoService;
@@ -31,8 +32,14 @@ public class PublicController {
         return new ResponseEntity<>(ngoService.login(loginRequest), HttpStatus.OK);
     }
 
-    @GetMapping("/closest-ngos")
+    @PostMapping("/closest-ngos")
     public ResponseEntity<?> getClosestNgos(@RequestBody ClosestNgoRequest ngoRequest) {
         return new ResponseEntity<>(ngoService.getClosestNgos(ngoRequest), HttpStatus.OK);
+    }
+
+    @PostMapping("/emergency")
+    public ResponseEntity<?> acceptEmergencyRequest(EmergencyRequest emergencyRequest) {
+        ngoService.sendMailToClosestNgo(emergencyRequest);
+        return new ResponseEntity<>("Mail sent to the closest NGO", HttpStatus.OK);
     }
 }
